@@ -1,9 +1,9 @@
 import Event from "@/database/event.model";
 import connectDB from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
 
 export async function POST(req: NextRequest) {
-    
   try {
     await connectDB();
 
@@ -16,6 +16,30 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       return NextResponse.json({ message: " JSON data from" }, { status: 400 });
     }
+
+    const file = fromData.get("image") as File;
+    if (!file) {
+      return NextResponse.json(
+        { message: "image file is required" },
+        { status: 400 }
+      );
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          { resource_type: "image", folder: "DevEvents" },
+          (error, results) => {
+            if (error) return reject(error);
+            resolve(results);
+          }
+        ).end(buffer);
+    });
+
+    event.image = (uploadResult as {secure_url: string}).secure_url
 
     const createdEvent = await Event.create(event);
 
@@ -32,3 +56,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
+
+export async function GET() {
+  try {
+    await connectDB()
+    const events = await Event.find().sort({createdAt: -1})
+
+    return NextResponse.json({ message: "Event fetched successfully", events }, { status: 200 });
+  } catch (err) {
+    return NextResponse.json({message: "Event fetching failed", error: err}, {status: 500})
+  }
+}
