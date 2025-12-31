@@ -12,9 +12,16 @@ interface Props {
 }
 
 const EventsCard = ({ title, image, slug, location, date, time }: Props) => {
+
+  const formattedDate = new Date(date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div>
-      <Link href={"/events"} id="event-card">
+      <Link href={`/event/${slug}`} id="event-card">
         <Image
           width={410}
           height={300}
@@ -40,7 +47,7 @@ const EventsCard = ({ title, image, slug, location, date, time }: Props) => {
               width={14}
               height={14}
             />
-            <p>{date}</p>
+            <p>{formattedDate}</p>
           </div>
 
           <div className="flex flex-row gap-2">

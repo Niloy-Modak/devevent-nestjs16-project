@@ -1,7 +1,6 @@
 import EventsCard from "@/components/EventsCard";
 import ExploreBtn from "@/components/ExploreBtn";
 import { IEvent } from "@/database/event.model";
-// import { events } from "@/lib/constants";
 import React from "react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
