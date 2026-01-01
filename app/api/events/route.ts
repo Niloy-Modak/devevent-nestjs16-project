@@ -2,6 +2,7 @@ import Event from "@/database/event.model";
 import connectDB from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+import { revalidateTag } from "next/cache";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,6 +26,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const tags = JSON.parse(fromData.get("tags") as string)
+    const agenda = JSON.parse(fromData.get("agenda") as string)
+    
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -41,7 +46,14 @@ export async function POST(req: NextRequest) {
 
     event.image = (uploadResult as {secure_url: string}).secure_url
 
-    const createdEvent = await Event.create(event);
+    const createdEvent = await Event.create({
+      ...event, 
+      tags : tags, 
+      agenda: agenda
+    });
+
+    // for caching
+    revalidateTag("events", {});
 
     return NextResponse.json(
       { message: " Event create successfully", event: createdEvent },
